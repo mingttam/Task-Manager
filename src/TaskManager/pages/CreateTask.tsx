@@ -30,7 +30,6 @@ const validationSchema: yup.ObjectSchema<TaskFormData> = yup.object({
   due_date: yup
     .string()
     .optional()
-    .matches(/^\d{4}-\d{2}-\d{2}$/, "Please enter a valid date")
     .test("due_date-after-start_date", "Due date must be after start date", function (value) {
       if (!value) return true;
       const { start_date } = this.parent;
@@ -285,6 +284,13 @@ export default function CreateTask() {
           <div className="flex justify-end space-x-4">
             <button
               type="button"
+              onClick={() => navigate("/tasks")}
+              className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-gray-400 hover:bg-gray-200 transition-colors"
+            >
+              Close
+            </button>
+            <button
+              type="button"
               onClick={() => reset()}
               className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
             >
@@ -293,11 +299,7 @@ export default function CreateTask() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`px-6 py-2 rounded-md font-medium transition-colors
-                
-                  
-                  "bg-blue-500 hover:bg-blue-600 text-white"
-              }`}
+              className="px-6 py-2 rounded-md font-medium transition-colors bg-blue-400 hover:bg-blue-600 text-black"
             >
               {isSubmitting ? "Creating..." : "Create Task"}
             </button>
