@@ -7,7 +7,10 @@ import TaskList from "../components/TaskList";
 import { searchTasks } from "../utils";
 
 import type { Filter, Task } from "../types";
-import { getTasksByAssignee } from "../services";
+import { deleteTask, getTasksByAssignee } from "../services";
+import TaskDate from "../components/TaskDate";
+import TaskPriority from "../components/TaskPriority";
+import TaskStatus from "../components/TaskStatus";
 
 export default function AssigneeMe() {
   const assigneeId = 1;
@@ -16,6 +19,8 @@ export default function AssigneeMe() {
   const [filters, setFilters] = React.useState<Filter>({});
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser] = useState({ id: assigneeId, name: "Your", avatar: "👤" });
+  const [selectedTask, setSelectedTask] = React.useState<Task | null>(null);
+  const [showModal, setShowModal] = React.useState(false);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -33,17 +38,39 @@ export default function AssigneeMe() {
   }, []);
 
   const handleEdit = (taskId: string | number | undefined) => {
-    navigate(`/update/${taskId}`);
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      navigate("/update-task", { state: { task } });
+    }
   };
 
   const handleView = (taskId: string | number | undefined) => {
     const task = tasks.find((t) => t.id === taskId);
     if (task) {
-      navigate(`/update/${taskId}`, { state: { task } });
+      setSelectedTask(task);
+      setShowModal(true);
+    }
+  };
+  const handleDelete = (taskId: string | number | undefined) => {
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      const confirmed = window.confirm(
+        `Are you sure you want to delete the task "${task.title}"?\n\nThis action cannot be undone.`
+      );
+
+      if (confirmed) {
+        try {
+          deleteTask(String(task.id));
+          setTasks((prev) => prev.filter((t) => t.id !== taskId));
+        } catch (error) {
+          console.error("Error deleting task:", error);
+          alert("Failed to delete task. Please try again.");
+        }
+      }
     }
   };
 
-  // Filter tasks based on current filter criteria
+  // Filter tasks
   const filteredTasks = React.useMemo(() => {
     return searchTasks(tasks, filters);
   }, [tasks, filters]);
@@ -52,7 +79,7 @@ export default function AssigneeMe() {
     setFilters(newFilters);
   };
 
-  // Task statistics
+  // Task stat
   const taskStats = React.useMemo(() => {
     const total = tasks.length;
     const completed = tasks.filter((t) => t.status === "done").length;
@@ -81,7 +108,7 @@ export default function AssigneeMe() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <NavigationBar />
 
-      {/* Background Decorations */}
+      {/* Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/5 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400/5 rounded-full blur-3xl"></div>
@@ -212,11 +239,6 @@ export default function AssigneeMe() {
                     <h2 className="text-2xl font-bold text-gray-900">Your Tasks</h2>
                     <p className="text-gray-600 mt-1">
                       {filteredTasks.length} of {tasks.length} tasks
-                      {Object.keys(filters).some((key) => filters[key as keyof Filter]) && (
-                        <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                          Filtered
-                        </span>
-                      )}
                     </p>
                   </div>
 
@@ -232,7 +254,12 @@ export default function AssigneeMe() {
               </div>
 
               <div className="p-1">
-                <TaskList tasks={filteredTasks} onEdit={handleEdit} onView={handleView} />
+                <TaskList
+                  tasks={filteredTasks}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onView={handleView}
+                />
               </div>
             </div>
           ) : (
@@ -259,6 +286,123 @@ export default function AssigneeMe() {
             </div>
           )}
         </div>
+
+        {/* Task Details Modal */}
+        {showModal && selectedTask && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in backdrop-blur-sm">
+            <div className="bg-white rounded-2xl p-8 max-w-3xl w-full mx-4 max-h-[85vh] overflow-y-auto animate-fade-in-up shadow-2xl border border-gray-200">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Task Details
+                </h3>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 text-2xl font-bold w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="group">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">📝 Title</label>
+                  <p className="text-gray-900 bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-gray-200 transition-all duration-200 group-hover:shadow-sm">
+                    {selectedTask.title}
+                  </p>
+                </div>
+
+                {selectedTask.description && (
+                  <div className="group">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      📄 Description
+                    </label>
+                    <p className="text-gray-900 bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-gray-200 transition-all duration-200 group-hover:shadow-sm">
+                      {selectedTask.description}
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="group">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">🎯 Status</label>
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-gray-200 transition-all duration-200 group-hover:shadow-sm">
+                      <TaskStatus task={selectedTask} />
+                    </div>
+                  </div>
+
+                  <div className="group">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      ⚡ Priority
+                    </label>
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-gray-200 transition-all duration-200 group-hover:shadow-sm">
+                      <TaskPriority priority={selectedTask.priority} />
+                    </div>
+                  </div>
+
+                  <div className="group">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      👤 Assignee
+                    </label>
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-gray-200 transition-all duration-200 group-hover:shadow-sm text-gray-900">
+                      {selectedTask.assignee_id || "Unassigned"}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="group">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      🚀 Start Date
+                    </label>
+                    <div className="text-gray-900 bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-gray-200 transition-all duration-200 group-hover:shadow-sm">
+                      <TaskDate date={selectedTask.start_date} />
+                    </div>
+                  </div>
+
+                  {selectedTask.due_date && (
+                    <div className="group">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        ⏰ Due Date
+                      </label>
+                      <div className="text-gray-900 bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-gray-200 transition-all duration-200 group-hover:shadow-sm">
+                        <TaskDate date={selectedTask.due_date} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {selectedTask.completed_date && (
+                  <div className="group">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      ✅ Completed Date
+                    </label>
+                    <div className="text-gray-900 bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-lg border border-green-200 transition-all duration-200 group-hover:shadow-sm">
+                      <TaskDate date={selectedTask.completed_date} />
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-300"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      handleEdit(selectedTask.id);
+                    }}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                  >
+                    ✏️ Edit Task
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         {tasks.length > 0 && (
