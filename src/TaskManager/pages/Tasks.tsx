@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router";
 
+import NavigationBar from "../components/NavigationBar";
 import TaskFilterForm from "../components/TaskFilterForm";
 import TaskList from "../components/TaskList";
 import TaskDate from "../components/TaskDate";
@@ -42,14 +43,6 @@ export default function Tasks() {
     }
   };
 
-  const handleCreate = () => {
-    navigate("/create-task");
-  };
-
-  const handleAssigneeMe = () => {
-    navigate("/assignee-me");
-  };
-
   const handleView = (taskId: string | number | undefined) => {
     const task = tasks.find((t) => t.id === taskId);
     if (task) {
@@ -79,6 +72,8 @@ export default function Tasks() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6 animate-fade-in">
+      <NavigationBar />
+
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header Section */}
         <div className="text-center mb-8 animate-fade-in-up">
@@ -88,27 +83,11 @@ export default function Tasks() {
           <p className="text-gray-600">Organize, track, and manage your tasks efficiently</p>
         </div>
 
-        {/* Filter and Actions Section */}
+        {/* Filter Section */}
         <section className="bg-white rounded-xl shadow-lg overflow-hidden animate-fade-in-up delay-100 border border-gray-100">
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1">
             <div className="bg-white rounded-lg p-6">
-              <TaskFilterForm onSearch={handleSearch} />
-
-              {/* Action Buttons */}
-              <div className="flex justify-end flex-wrap gap-4 mt-6 pt-4 border-t border-gray-100">
-                <button
-                  onClick={handleAssigneeMe}
-                  className="group px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-yellow-300 animate-fade-in"
-                >
-                  <span className="flex items-center gap-2">👤 Assigned to Me</span>
-                </button>
-                <button
-                  onClick={handleCreate}
-                  className="group px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 animate-fade-in"
-                >
-                  <span className="flex items-center gap-2">➕ Add New Task</span>
-                </button>
-              </div>
+              <TaskFilterForm onSearch={handleSearch} totalTasks={tasks.length} />
             </div>
           </div>
         </section>
