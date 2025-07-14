@@ -8,17 +8,14 @@ import UpdateTask from "./pages/UpdateTask";
 import { useState, useEffect } from "react";
 import { LoginContext } from "./context";
 
-// Define a User type for clarity
 interface User {
   token: string;
-  // Add more fields if you decode the token or fetch user info
 }
 
 const TaskManager = () => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Restore user from localStorage if available
     const userStr = localStorage.getItem("user");
     if (userStr) {
       try {

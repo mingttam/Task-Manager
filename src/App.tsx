@@ -1,9 +1,9 @@
-import TaskManager from "./TaskManager";
+import Test from "./TEST";
 
 function App() {
   return (
     <>
-      <TaskManager />
+      <Test />
     </>
   );
 }
