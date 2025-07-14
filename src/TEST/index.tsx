@@ -1,3 +1,4 @@
+import Error404 from "./Error404";
 import UserForm from "./Test1/UserForm";
 import UserList from "./Test2/UserList";
 import Navigation from "./Test3/Navigation";
@@ -36,6 +37,7 @@ const Test = () => {
                 }
               />
               <Route path="/users/:id" element={<UserDetails />} />
+              <Route path="*" element={<Error404 />} />
             </Routes>
           </div>
         </div>
