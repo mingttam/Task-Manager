@@ -2,7 +2,7 @@ import { Link } from "react-router";
 
 const Navigation = () => {
   return (
-    <nav className="bg-gray-900 shadow-2xl border-b border-gray-700 relative">
+    <nav className="bg-gray-900 shadow-2xl border-b border-gray-700 sticky top-0 z-50">
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-32 h-32 bg-white/5 rounded-full -translate-y-8 -translate-x-8"></div>
       <div className="absolute bottom-0 right-0 w-24 h-24 bg-white/5 rounded-full translate-y-4 translate-x-4"></div>
